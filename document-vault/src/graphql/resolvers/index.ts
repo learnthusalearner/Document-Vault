@@ -1,38 +1,44 @@
-import { queryResolvers } from "./query.js";
-import { mutationResolvers } from "./mutation.js";
-import { collectionResolvers, documentResolvers } from "./fields.js";
+import { collectionResolver } from "./collection.resolver.js";
+import { documentResolver } from "./document.resolver.js";
 
 /**
- * Root resolver map — merged from individual modules.
+ * Root resolver map.
  *
- * The DateTime scalar serialises JS Date objects (returned by Prisma) to
- * ISO-8601 strings. GraphQL Yoga passes them through its JSON serialiser
- * which calls .toISOString(), so a simple identity coerce is enough here.
+ * Each domain module exports a partial resolver map with the same shape as
+ * the root map. They are merged here by spreading each module's Query,
+ * Mutation, and type-level resolvers into a single object.
  */
 export const resolvers = {
-  // ── Scalar ────────────────────────────────────────────────────────────────
+  // ── Custom scalar ──────────────────────────────────────────────────────────
+  // Prisma returns JS Date objects; serialise them as ISO-8601 strings.
   DateTime: {
-    serialize: (value: unknown) => {
+    serialize: (value: unknown): string => {
       if (value instanceof Date) return value.toISOString();
       if (typeof value === "string") return value;
       throw new Error(`DateTime cannot serialize value: ${String(value)}`);
     },
-    parseValue: (value: unknown) => {
+    parseValue: (value: unknown): Date => {
       if (typeof value === "string") return new Date(value);
       throw new Error(`DateTime cannot parse value: ${String(value)}`);
     },
-    parseLiteral: (ast: { kind: string; value?: string }) => {
+    parseLiteral: (ast: { kind: string; value?: string }): Date => {
       if (ast.kind === "StringValue" && ast.value !== undefined)
         return new Date(ast.value);
       throw new Error(`DateTime cannot parse literal kind: ${ast.kind}`);
     },
   },
 
-  // ── Operations ────────────────────────────────────────────────────────────
-  Query: queryResolvers,
-  Mutation: mutationResolvers,
+  // ── Merged operations ──────────────────────────────────────────────────────
+  Query: {
+    ...collectionResolver.Query,
+    ...documentResolver.Query,
+  },
+  Mutation: {
+    ...collectionResolver.Mutation,
+    ...documentResolver.Mutation,
+  },
 
-  // ── Field resolvers ───────────────────────────────────────────────────────
-  ...collectionResolvers,
-  ...documentResolvers,
+  // ── Type-level field resolvers ─────────────────────────────────────────────
+  Collection: collectionResolver.Collection,
+  Document: documentResolver.Document,
 };
