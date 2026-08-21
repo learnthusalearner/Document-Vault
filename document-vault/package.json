@@ -7,7 +7,9 @@
     "dev": "bun run --watch src/server.ts",
     "test": "bun test",
     "typecheck": "tsc --noEmit",
-    "gendb": "bunx prisma generate && bunx prisma migrate dev"
+    "lint": "tsc --noEmit",
+    "gendb": "prisma generate && prisma migrate dev",
+    "sanity": "bun run lint && bun run typecheck && bun test"
   },
   "dependencies": {
     "@graphql-tools/schema": "^10.1.0",
