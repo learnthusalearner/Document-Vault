@@ -7,21 +7,20 @@
 import { mock, type Mock } from "bun:test";
 import type { Collection, Document } from "@prisma/client";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface MockCollectionDelegate {
-  findMany: Mock<(args?: any) => Promise<Collection[]>>;
-  findUnique: Mock<(args?: any) => Promise<Collection | null>>;
-  create: Mock<(args?: any) => Promise<Collection>>;
+  findMany: Mock<(args?: unknown) => Promise<Collection[]>>;
+  findUnique: Mock<(args?: unknown) => Promise<Collection | null>>;
+  create: Mock<(args?: unknown) => Promise<Collection>>;
 }
 
 export interface MockDocumentDelegate {
-  findMany: Mock<(args?: any) => Promise<Document[]>>;
-  findUnique: Mock<(args?: any) => Promise<Document | null>>;
-  create: Mock<(args?: any) => Promise<Document>>;
-  update: Mock<(args?: any) => Promise<Document>>;
-  delete: Mock<(args?: any) => Promise<Document>>;
+  findMany: Mock<(args?: unknown) => Promise<Document[]>>;
+  findUnique: Mock<(args?: unknown) => Promise<Document | null>>;
+  findFirst: Mock<(args?: unknown) => Promise<Document | null>>;
+  create: Mock<(args?: unknown) => Promise<Document>>;
+  update: Mock<(args?: unknown) => Promise<Document>>;
+  delete: Mock<(args?: unknown) => Promise<Document>>;
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */
 
 export interface MockPrisma {
   collection: MockCollectionDelegate;
@@ -38,6 +37,7 @@ export function makeMockPrisma(): MockPrisma {
     document: {
       findMany: mock(() => Promise.resolve([])),
       findUnique: mock(() => Promise.resolve(null)),
+      findFirst: mock(() => Promise.resolve(null)),
       create: mock(() => Promise.resolve({} as Document)),
       update: mock(() => Promise.resolve({} as Document)),
       delete: mock(() => Promise.resolve({} as Document)),

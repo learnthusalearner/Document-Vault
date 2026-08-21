@@ -5,9 +5,9 @@ import prisma from "../../src/lib/prisma.js";
 // ── GraphQL Client Helper ──────────────────────────────────────────────────────
 // Executes requests against GraphQL Yoga's native HTTP fetch handler.
 // This tests the full pipeline: HTTP parsing -> Yoga -> Resolvers -> Prisma -> PostgreSQL.
-async function gql<TData = Record<string, any>>(
+async function gql<TData = Record<string, unknown>>(
   query: string,
-  variables?: Record<string, any>
+  variables?: Record<string, unknown>
 ): Promise<{ data: TData; errors?: Array<{ message: string }> }> {
   const response = await yoga.fetch("http://localhost:4000/graphql", {
     method: "POST",

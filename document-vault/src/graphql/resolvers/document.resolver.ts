@@ -43,7 +43,7 @@ const documents = async (
   args: DocumentsArgs,
   ctx: Context
 ) => {
-  const take = Math.min(args.take ?? DEFAULT_TAKE, MAX_TAKE);
+  const take = Math.max(1, Math.min(args.take ?? DEFAULT_TAKE, MAX_TAKE));
 
   // Build where clause — only include filters that were explicitly supplied
   const where = {
@@ -61,20 +61,19 @@ const documents = async (
     }),
   };
 
-  // Handle invalid cursor gracefully — unknown cursor → start from beginning
+  // Handle invalid/mismatched cursor gracefully — start from beginning
   let cursorClause:
     | { cursor: { id: string }; skip: number }
     | Record<string, never> = {};
 
   if (args.cursor !== undefined) {
-    const cursorExists = await ctx.prisma.document.findUnique({
-      where: { id: args.cursor },
+    const cursorExists = await ctx.prisma.document.findFirst({
+      where: { id: args.cursor, ...where },
       select: { id: true },
     });
     if (cursorExists !== null) {
       cursorClause = { cursor: { id: args.cursor }, skip: 1 };
     }
-    // If cursor is invalid/stale, silently start from the beginning (no error)
   }
 
   // Fetch take+1 to detect whether a next page exists

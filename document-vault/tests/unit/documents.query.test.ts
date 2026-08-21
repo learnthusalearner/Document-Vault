@@ -20,7 +20,7 @@ describe("documents query — search, filter, and pagination", () => {
   beforeEach(() => {
     prisma = makeMockPrisma();
     // By default, cursor validation returns "not found" (no cursor forwarding)
-    prisma.document.findUnique.mockResolvedValue(null);
+    prisma.document.findFirst.mockResolvedValue(null);
     prisma.document.findMany.mockResolvedValue([]);
   });
 
@@ -252,7 +252,7 @@ describe("documents query — search, filter, and pagination", () => {
     });
 
     it("passes cursor and skip:1 to prisma when a valid cursor is provided", async () => {
-      prisma.document.findUnique.mockResolvedValue(
+      prisma.document.findFirst.mockResolvedValue(
         makeDocument({ id: "cursor-id" })
       );
 
@@ -271,7 +271,7 @@ describe("documents query — search, filter, and pagination", () => {
     });
 
     it("silently falls back to page 1 when the cursor is stale or invalid", async () => {
-      prisma.document.findUnique.mockResolvedValue(null); // cursor not found
+      prisma.document.findFirst.mockResolvedValue(null); // cursor not found
       prisma.document.findMany.mockResolvedValue([makeDocument()]);
 
       const result = await documentResolver.Query.documents(
