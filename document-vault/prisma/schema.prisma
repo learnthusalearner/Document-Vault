@@ -1,5 +1,4 @@
 // Prisma schema — Document Vault
-// Models will be added in subsequent steps.
 
 generator client {
   provider = "prisma-client-js"
@@ -8,4 +7,43 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+// ── Models ────────────────────────────────────────────────────────────────
+
+model Collection {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  documents Document[]
+
+  @@map("collections")
+}
+
+model Document {
+  id           String   @id @default(cuid())
+  title        String
+  content      String
+  tags         String[]
+  collectionId String
+  isArchived   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  collection Collection @relation(fields: [collectionId], references: [id])
+
+  // ── Indexes ───────────────────────────────────────────────────────────
+  // collectionId: speeds up "all documents in a collection" queries
+  // isArchived:   speeds up "active documents only" filtering
+  // (collectionId, isArchived): composite for the common combined filter
+  // (collectionId, createdAt): speeds up paginated listing within a collection
+  // tags:         GIN index for array containment queries (@> operator)
+  @@index([collectionId])
+  @@index([isArchived])
+  @@index([collectionId, isArchived])
+  @@index([collectionId, createdAt])
+  @@index([tags], type: Gin)
+
+  @@map("documents")
 }
