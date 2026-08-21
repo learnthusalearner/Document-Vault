@@ -1,0 +1,9 @@
+# Document Vault — GraphQL Schema
+# Models and operations will be added in subsequent steps.
+
+type Query {
+  """
+  Health check — returns "ok" when the server is running.
+  """
+  health: String!
+}

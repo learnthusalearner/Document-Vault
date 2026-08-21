@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+bun.lockb
+
+# Environment — never commit secrets
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+
+# Prisma generated client (regenerated via `bun run gendb`)
+# Comment out if you prefer to commit the generated client
+node_modules/.prisma/
+
+# Bun cache
+.bun/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+*.swo

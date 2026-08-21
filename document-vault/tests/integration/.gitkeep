@@ -1,0 +1,3 @@
+# Integration tests will be added here.
+# These tests require a running PostgreSQL instance.
+# Use a separate test database (e.g. DATABASE_URL pointing to document_vault_test).
