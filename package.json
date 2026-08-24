@@ -3,10 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "workspaces": [
+    "document-vault"
+  ],
   "scripts": {
-    "build": "npm --prefix document-vault run build",
-    "postinstall": "npm --prefix document-vault run postinstall",
-    "vercel-build": "npm --prefix document-vault run vercel-build"
+    "build": "npx prisma generate --schema=./document-vault/prisma/schema.prisma",
+    "postinstall": "npx prisma generate --schema=./document-vault/prisma/schema.prisma",
+    "vercel-build": "npx prisma generate --schema=./document-vault/prisma/schema.prisma"
   },
   "devDependencies": {
     "@types/node": "^22.13.4",

@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+bun.lockb
+.pnpm-store/
+
+# Environment — never commit secrets
+.env
+.env.local
+.env.*.local
+
+# Vercel
+.vercel/
+
+# Build output
+dist/
+
+# Prisma
+node_modules/.prisma/
+
+# Bun cache
+.bun/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+*.swo

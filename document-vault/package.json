@@ -3,8 +3,12 @@
   "version": "0.1.0",
   "description": "Document Vault — GraphQL API built with Bun, GraphQL Yoga, and Prisma",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "bun run --watch src/server.ts",
+    "build": "npx prisma generate",
+    "postinstall": "npx prisma generate",
+    "vercel-build": "npx prisma generate",
     "test": "bun test",
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",
