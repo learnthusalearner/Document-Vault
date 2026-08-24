@@ -1,0 +1,15 @@
+{
+  "name": "document-vault-root",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "npm --prefix document-vault run build",
+    "postinstall": "npm --prefix document-vault run postinstall",
+    "vercel-build": "npm --prefix document-vault run vercel-build"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "@vercel/node": "^5.1.8"
+  }
+}
