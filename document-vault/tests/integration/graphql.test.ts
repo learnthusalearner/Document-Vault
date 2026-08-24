@@ -43,6 +43,12 @@ describe("GraphQL API Integration Test (PostgreSQL)", () => {
     await prisma.$disconnect();
   });
 
+  it("0. Verifies health check query", async () => {
+    const res = await gql<{ health: string }>("query { health }");
+    expect(res.errors).toBeUndefined();
+    expect(res.data.health).toBe("OK");
+  });
+
   it("1. Creates a collection through GraphQL", async () => {
     const query = `
       mutation CreateCol($input: CreateCollectionInput!) {

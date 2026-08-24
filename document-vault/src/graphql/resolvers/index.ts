@@ -30,6 +30,7 @@ export const resolvers = {
 
   // ── Merged operations ──────────────────────────────────────────────────────
   Query: {
+    health: (): string => "OK",
     ...collectionResolver.Query,
     ...documentResolver.Query,
   },
