@@ -19,6 +19,8 @@
     "prisma": "^6.19.3"
   },
   "devDependencies": {
-    "@types/bun": "^1.4.0"
+    "@types/bun": "^1.4.0",
+    "@types/node": "^26.2.0",
+    "@vercel/node": "^7.0.0"
   }
 }

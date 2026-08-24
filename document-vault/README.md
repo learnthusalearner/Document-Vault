@@ -15,16 +15,17 @@ A production-grade, schema-first **GraphQL API** for managing collections and do
 7. [Environment Variables](#-environment-variables)
 8. [Setup Instructions](#-setup-instructions)
 9. [Database & Migration Instructions](#-database--migration-instructions)
-10. [Running the Development Server](#-running-the-development-server)
-11. [Running Tests](#-running-tests)
-12. [Running Integration Tests](#-running-integration-tests)
-13. [GraphQL Endpoint & Playground](#-graphql-endpoint--playground)
-14. [Example GraphQL Queries](#-example-graphql-queries)
-15. [Example GraphQL Mutations](#-example-graphql-mutations)
-16. [Cursor Pagination Explanation](#-cursor-pagination-explanation)
-17. [Validation & Error Handling](#-validation--error-handling)
-18. [Design Tradeoffs](#-design-tradeoffs)
-19. [Future Extensions & Out of Scope](#-future-extensions--out-of-scope)
+10. [Deploying to Vercel](#-deploying-to-vercel)
+11. [Running the Development Server](#-running-the-development-server)
+12. [Running Tests](#-running-tests)
+13. [Running Integration Tests](#-running-integration-tests)
+14. [GraphQL Endpoint & Playground](#-graphql-endpoint--playground)
+15. [Example GraphQL Queries](#-example-graphql-queries)
+16. [Example GraphQL Mutations](#-example-graphql-mutations)
+17. [Cursor Pagination Explanation](#-cursor-pagination-explanation)
+18. [Validation & Error Handling](#-validation--error-handling)
+19. [Design Tradeoffs](#-design-tradeoffs)
+20. [Future Extensions & Out of Scope](#-future-extensions--out-of-scope)
 
 ---
 
@@ -191,6 +192,41 @@ bun run gendb
 # 4. Open Prisma Studio (optional database GUI)
 npx prisma studio
 ```
+
+---
+
+## 🚀 Deploying to Vercel
+
+Document Vault is preconfigured for **one-click serverless deployment on Vercel**.
+
+### 1. Prerequisites
+- A hosted PostgreSQL database (e.g. [Neon](https://neon.tech), [Supabase](https://supabase.com), [Vercel Postgres](https://vercel.com/docs/storage/vercel-postgres), or [Aiven](https://aiven.io)).
+- A [Vercel](https://vercel.com) account connected to your GitHub.
+
+### 2. Deployment Steps
+1. **Push Changes to GitHub**:
+   ```bash
+   git add .
+   git commit -m "feat: configure vercel serverless deployment"
+   git push origin main
+   ```
+2. **Import into Vercel**:
+   - Navigate to [vercel.com/new](https://vercel.com/new) and select the `Document-Vault` repository.
+   - You can leave **Root Directory** as default (`./`) or select `document-vault` (both are supported).
+3. **Configure Environment Variables**:
+   - In **Project Settings → Environment Variables**, add:
+     - `DATABASE_URL`: `postgresql://username:password@ep-sample-123.us-east-2.aws.neon.tech/neondb?sslmode=require`
+4. **Deploy**:
+   - Click **Deploy**. Vercel will install dependencies, automatically generate the Prisma Client (`postinstall`), and deploy the serverless GraphQL API.
+5. **Apply Database Migrations (One-Time Setup)**:
+   - Push your schema to your hosted PostgreSQL database:
+     ```bash
+     DATABASE_URL="your-hosted-database-url" npx prisma db push
+     ```
+
+### 3. Accessing the Live API
+- **Interactive GraphiQL Playground**: Open `https://<your-project>.vercel.app/` or `https://<your-project>.vercel.app/graphql` in your browser.
+- **GraphQL API Endpoint**: Send HTTP `POST` requests to `https://<your-project>.vercel.app/graphql` with `Content-Type: application/json`.
 
 ---
 

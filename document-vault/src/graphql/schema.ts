@@ -1,0 +1,123 @@
+// ── GraphQL Schema Definition (Embedded for Serverless & Runtime Safety) ────
+
+export const typeDefs = /* GraphQL */ `
+# ──────────────────────────────────────────────────────────────────────────────
+# Document Vault — GraphQL Schema
+# ──────────────────────────────────────────────────────────────────────────────
+
+# ── Scalars ───────────────────────────────────────────────────────────────────
+
+"""ISO-8601 date-time string."""
+scalar DateTime
+
+# ── Object types ──────────────────────────────────────────────────────────────
+
+type Collection {
+  id: ID!
+  name: String!
+  slug: String!
+  createdAt: DateTime!
+  documents: [Document!]!
+}
+
+type Document {
+  id: ID!
+  title: String!
+  content: String!
+  tags: [String!]!
+  collectionId: ID!
+  isArchived: Boolean!
+  createdAt: DateTime!
+  collection: Collection!
+}
+
+"""Cursor-based page of documents."""
+type DocumentsPage {
+  documents: [Document!]!
+  """Opaque cursor pointing to the last item in this page. Pass as \`cursor\`
+  in the next request to fetch the following page. Null when the page is empty."""
+  nextCursor: String
+  """True when there are more documents beyond this page."""
+  hasMore: Boolean!
+}
+
+# ── Input types ───────────────────────────────────────────────────────────────
+
+input CreateCollectionInput {
+  name: String!
+  slug: String!
+}
+
+input CreateDocumentInput {
+  title: String!
+  content: String!
+  tags: [String!]
+  collectionId: ID!
+}
+
+input UpdateDocumentInput {
+  title: String
+  content: String
+  tags: [String!]
+  isArchived: Boolean
+}
+
+input MoveDocumentInput {
+  collectionId: ID!
+}
+
+# ── Queries ───────────────────────────────────────────────────────────────────
+
+type Query {
+  """Health check."""
+  health: String!
+
+  """Return all collections."""
+  collections: [Collection!]!
+
+  """Return a single collection by ID. Null if not found."""
+  collection(id: ID!): Collection
+
+  """
+  Return a paginated list of documents.
+
+  Filtering:
+  - \`collectionId\` — restrict to a specific collection
+  - \`isArchived\`   — filter by archived status
+  - \`search\`       — case-insensitive substring match against title OR content
+
+  Pagination (cursor-based, oldest-first):
+  - \`take\`   — number of items per page (default 20, max 100)
+  - \`cursor\` — opaque cursor returned by a previous \`DocumentsPage.nextCursor\`
+  """
+  documents(
+    collectionId: ID
+    search: String
+    isArchived: Boolean
+    take: Int
+    cursor: String
+  ): DocumentsPage!
+}
+
+# ── Mutations ─────────────────────────────────────────────────────────────────
+
+type Mutation {
+  """Create a new collection. Slug must be unique."""
+  createCollection(input: CreateCollectionInput!): Collection!
+
+  """Create a new document inside a collection."""
+  createDocument(input: CreateDocumentInput!): Document!
+
+  """
+  Update mutable fields of a document.
+  Only fields present in the input are changed; omitted fields are left as-is.
+  """
+  updateDocument(id: ID!, input: UpdateDocumentInput!): Document!
+
+  """Permanently delete a document. Returns the deleted document's ID."""
+  deleteDocument(id: ID!): ID!
+
+  """Move a document to a different collection."""
+  moveDocument(id: ID!, input: MoveDocumentInput!): Document!
+}
+`;

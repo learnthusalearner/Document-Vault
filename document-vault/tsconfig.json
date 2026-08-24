@@ -4,7 +4,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "lib": ["ESNext"],
-    "types": ["bun"],
+    "types": ["bun", "node"],
 
     /* Strict mode */
     "strict": true,
@@ -26,6 +26,6 @@
     /* Skip lib checks on third-party types */
     "skipLibCheck": true
   },
-  "include": ["src/**/*", "tests/**/*"],
+  "include": ["src/**/*", "api/**/*", "tests/**/*"],
   "exclude": ["node_modules", "dist"]
 }

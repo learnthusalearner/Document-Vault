@@ -1,17 +1,27 @@
 import { PrismaClient } from "@prisma/client";
 
 /**
- * Prisma client singleton.
+ * Prisma client singleton for serverless and long-running processes.
  *
- * Bun runs in a single process (no module hot-reload issue like Next.js),
- * so a simple module-level singleton is sufficient here.
- * The client is lazily initialised on first import.
+ * In serverless environments like Vercel, caching on globalThis prevents
+ * creating excessive database connections across warm function invocations.
  */
-const prisma = new PrismaClient({
-  log:
-    process.env["NODE_ENV"] === "development"
-      ? ["query", "warn", "error"]
-      : ["warn", "error"],
-});
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
+
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    log:
+      process.env["NODE_ENV"] === "development"
+        ? ["query", "warn", "error"]
+        : ["warn", "error"],
+  });
+
+if (process.env["NODE_ENV"] !== "production") {
+  globalForPrisma.prisma = prisma;
+}
 
 export default prisma;
+
