@@ -62,38 +62,142 @@ This project implements a **schema-first GraphQL API** satisfying the following 
 
 ## 🏗️ Architecture
 
+### Request Flow
+
+```mermaid
+flowchart TD
+    Client(["🌐 Client\n(HTTP / GraphiQL)"])
+
+    subgraph Entry["Entry Point"]
+        Server["server.ts\nNode HTTP Server\n:4000"]
+    end
+
+    subgraph App["Application Layer  —  app.ts"]
+        Yoga["GraphQL Yoga\ncreateYoga()"]
+        Schema["Executable Schema\nmakeExecutableSchema()"]
+        Context["Context Factory\ncreatContext() → { prisma }"]
+    end
+
+    subgraph SDL["Schema Layer  —  src/graphql/"]
+        SchemaGQL["schema.graphql\n(SDL type definitions)"]
+        ResolverIndex["resolvers/index.ts\nMerged root resolver map\n+ DateTime scalar"]
+        CollRes["collection.resolver.ts\nQuery · Mutation · Collection fields"]
+        DocRes["document.resolver.ts\nQuery · Mutation · Document fields\ncursor pagination"]
+    end
+
+    subgraph Validation["Validation & Error Layer  —  src/validation/"]
+        Val["validation/index.ts\nSlug · Whitespace · Tag rules\nPrisma P2002 / P2025 handler"]
+    end
+
+    subgraph Data["Data Layer  —  src/lib/"]
+        PrismaClient["prisma.ts\nSingleton PrismaClient"]
+    end
+
+    subgraph DB["Infrastructure"]
+        Postgres[("🐘 PostgreSQL 16\nPort 5434\n(Docker Compose)")]
+    end
+
+    Client -->|"POST /graphql"| Server
+    Server --> Yoga
+    Yoga --> Schema
+    Yoga --> Context
+    Schema --> SchemaGQL
+    Schema --> ResolverIndex
+    ResolverIndex --> CollRes
+    ResolverIndex --> DocRes
+    CollRes --> Val
+    DocRes --> Val
+    Val --> PrismaClient
+    Context --> PrismaClient
+    PrismaClient -->|"SQL"| Postgres
+    Postgres -->|"rows"| PrismaClient
+    PrismaClient --> Val
+    Val --> ResolverIndex
+    ResolverIndex --> Yoga
+    Yoga -->|"JSON response"| Client
+
+    style Client fill:#4f46e5,color:#fff,stroke:#3730a3
+    style Postgres fill:#336791,color:#fff,stroke:#1e4d6b
+    style Entry fill:#1e293b,color:#e2e8f0,stroke:#334155
+    style App fill:#0f172a,color:#e2e8f0,stroke:#1e293b
+    style SDL fill:#0c1a2e,color:#e2e8f0,stroke:#1e3a5f
+    style Validation fill:#1a1a2e,color:#e2e8f0,stroke:#2d2d5e
+    style Data fill:#0f1f0f,color:#e2e8f0,stroke:#1a3a1a
+    style DB fill:#0d1f33,color:#e2e8f0,stroke:#1a3a5c
 ```
-Client HTTP Request
-      │
-      ▼
-┌────────────────────────────────────────┐
-│ GraphQL Yoga HTTP Server (app.ts)      │
-└──────────────────┬─────────────────────┘
-                   │
-                   ▼
-┌────────────────────────────────────────┐
-│ Schema & Resolvers                     │
-│  - schema.graphql (SDL)                │
-│  - collection.resolver.ts              │
-│  - document.resolver.ts                │
-└──────────────────┬─────────────────────┘
-                   │
-                   ▼
-┌────────────────────────────────────────┐
-│ Validation & Error Layer               │
-│  - Slug / Whitespace / Tag rules       │
-│  - Prisma P2002/P2025 Error Handler    │
-└──────────────────┬─────────────────────┘
-                   │
-                   ▼
-┌────────────────────────────────────────┐
-│ Prisma Client ORM                      │
-└──────────────────┬─────────────────────┘
-                   │
-                   ▼
-┌────────────────────────────────────────┐
-│ PostgreSQL Database (Docker Port 5434) │
-└────────────────────────────────────────┘
+
+---
+
+### Data Model (ER Diagram)
+
+```mermaid
+erDiagram
+    COLLECTION {
+        String  id        PK "CUID"
+        String  name
+        String  slug      UK "unique"
+        DateTime createdAt
+    }
+
+    DOCUMENT {
+        String   id           PK "CUID"
+        String   title
+        String   content
+        String[] tags            "GIN indexed"
+        String   collectionId FK
+        Boolean  isArchived      "default false"
+        DateTime createdAt
+    }
+
+    COLLECTION ||--o{ DOCUMENT : "contains"
+```
+
+---
+
+### Module Dependency Graph
+
+```mermaid
+flowchart LR
+    server["server.ts"] --> app["app.ts"]
+    app --> schema_ts["graphql/schema.ts\n(loads SDL)"]
+    app --> resolvers["graphql/resolvers/index.ts"]
+    app --> context["graphql/context.ts"]
+    resolvers --> coll_res["resolvers/collection.resolver.ts"]
+    resolvers --> doc_res["resolvers/document.resolver.ts"]
+    coll_res --> validation["validation/index.ts"]
+    doc_res --> validation
+    context --> prisma_lib["lib/prisma.ts"]
+    coll_res --> prisma_lib
+    doc_res --> prisma_lib
+
+    style server fill:#7c3aed,color:#fff
+    style app fill:#4f46e5,color:#fff
+    style prisma_lib fill:#336791,color:#fff
+```
+
+---
+
+### Deployment Topology
+
+```mermaid
+flowchart LR
+    subgraph Local["Local Dev"]
+        BunDev["bun run dev\n(--watch)"]
+        DockerDB[("PostgreSQL\nDocker :5434")]
+        BunDev <-->|"Prisma"| DockerDB
+    end
+
+    subgraph Vercel["Vercel (Production)"]
+        VercelFn["Serverless Function\napi/index.ts"]
+        ExtDB[("PostgreSQL\nExternal provider")]
+        VercelFn <-->|"Prisma + DATABASE_URL"| ExtDB
+    end
+
+    Internet(["🌐 Internet"]) -->|"HTTPS"| Vercel
+
+    style Local fill:#1e293b,color:#e2e8f0,stroke:#475569
+    style Vercel fill:#0a0a0a,color:#e2e8f0,stroke:#333
+    style Internet fill:#4f46e5,color:#fff,stroke:#3730a3
 ```
 
 ---
